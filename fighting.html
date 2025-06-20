@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Rain - Love Messages</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #000;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            perspective: 1000px; /* Thêm perspective cho hiệu ứng 3D */
+        }
+
+        .rain-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            transform-style: preserve-3d; /* Thêm 3D transform style */
+            transition: transform 0.3s ease-out; /* Smooth transition */
+        }
+
+        .rain-text {
+            position: absolute;
+            color: #ff69b4;
+            font-weight: 600;
+            white-space: nowrap;
+            user-select: none;
+            text-shadow: 
+                0 0 5px #ff69b4,
+                0 0 10px #ff69b4,
+                0 0 15px #ff69b4,
+                0 0 20px #ff1493;
+            animation: fall linear infinite;
+            opacity: 0.9;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        /* Heart shapes */
+        .heart {
+            position: absolute;
+            color: #ff4444;
+            font-size: 20px;
+            animation: heartFall linear infinite;
+            z-index: 2;
+        }
+
+        @keyframes heartFall {
+            0% {
+                transform: translateY(-50px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Interactive cursor */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(255,105,180,0.8) 0%, rgba(255,105,180,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: cursorPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes cursorPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .rain-text {
+                font-size: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor"></div>
+    <div class="rain-container" id="rainContainer"></div>
+
+    <script>
+        const messages = [
+            "Chúc em thi thật tốt nhé ❤️",
+            "I always believe in you",
+            "Bình tĩnh, tự tin và làm bài thật tốt",
+            "Stay calm, be confident",
+            "Anh biết em đã cố gắng rất nhiều rồi",
+            "You've worked so hard",
+            "Em luôn là người giỏi nhất",
+            "You're always the best to me",
+            "Cố lên em nhé!",
+            "You got this!",
+            "Chúc em thật may mắn",
+            "Wishing you good luck",
+            "Anh luôn ở đây ủng hộ em",
+            "I'm always here supporting you",
+            "Anh tin rằng em sẽ làm được",
+            "I know you'll make it",
+            "Gửi em rất nhiều yêu thương",
+            "Sending you lots of love",
+            "mãi bên nhau anh nhé 💕",
+            "I love you 💖",
+            "pah nuh 😘",
+            "rất nhớ anh",
+            "Em lu anh 💝",
+            "Yêu em nhiều lắm",
+            "Miss you so much",
+            "Always thinking of you",
+            "💖💕💗💝💘",
+            "🌟✨⭐💫",
+            "Good luck baby",
+            "Tin vào bản thân em",
+            "You're amazing",
+            "Làm bài cẩn thận nhé",
+            "Take your time",
+            "Đừng căng thẳng quá",
+            "Don't stress too much",
+            "Anh yêu em 💕"
+        ];
+
+        const hearts = ["❤️", "💖", "💕", "💗", "💝", "💘", "🧡", "🔥"];
+        const container = document.getElementById('rainContainer');
+        const cursor = document.querySelector('.cursor');
+
+        // Variables for 3D interaction
+        let isDragging = false;
+        let startX = 0;
+        let currentRotationY = 0;
+        let currentRotationX = 0;
+        let targetRotationY = 0;
+        let targetRotationX = 0;
+
+        // Create falling text function (same as before)
+        function createFallingText() {
+            const text = document.createElement('div');
+            text.className = 'rain-text';
+            text.textContent = messages[Math.floor(Math.random() * messages.length)];
+            
+            text.style.left = Math.random() * 100 + '%';
+            text.style.fontSize = (Math.random() * 10 + 12) + 'px';
+            text.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            text.style.animationDelay = Math.random() * 2 + 's';
+            text.style.opacity = Math.random() * 0.5 + 0.5;
+            
+            container.appendChild(text);
+            
+            setTimeout(() => {
+                if (text.parentNode) {
+                    text.parentNode.removeChild(text);
+                }
+            }, 8000);
+        }
+
+        // Create falling hearts function (same as before)
+        function createFallingHeart() {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+            
+            heart.style.left = Math.random() * 100 + '%';
+            heart.style.fontSize = (Math.random() * 15 + 15) + 'px';
+            heart.style.animationDuration = (Math.random() * 4 + 3) + 's';
+            heart.style.animationDelay = Math.random() * 3 + 's';
+            
+            container.appendChild(heart);
+            
+            setTimeout(() => {
+                if (heart.parentNode) {
+                    heart.parentNode.removeChild(heart);
+                }
+            }, 10000);
+        }
+
+        // Mouse drag interaction for 3D tilt
+        document.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            document.body.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            // Update cursor position
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+            
+            // Handle dragging for 3D tilt
+            if (isDragging) {
+                const deltaX = e.clientX - startX;
+                targetRotationY = (deltaX / window.innerWidth) * 60; // Max 60 degrees
+                targetRotationX = ((e.clientY / window.innerHeight) - 0.5) * 30; // Max 30 degrees
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            document.body.style.cursor = 'default';
+            // Gradually return to center
+            targetRotationY *= 0.8;
+            targetRotationX *= 0.8;
+        });
+
+        // Touch interaction for mobile drag
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            
+            // Create burst of text at touch point
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => createFallingText(), i * 50);
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+            
+            targetRotationY = (deltaX / window.innerWidth) * 40;
+            targetRotationX = -(deltaY / window.innerHeight) * 20;
+        });
+
+        document.addEventListener('touchend', () => {
+            // Gradually return to center
+            targetRotationY *= 0.7;
+            targetRotationX *= 0.7;
+        });
+
+        // Device orientation for mobile tilt
+        if (window.DeviceOrientationEvent) {
+            // Request permission for iOS 13+
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                document.addEventListener('click', () => {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(response => {
+                            if (response == 'granted') {
+                                window.addEventListener('deviceorientation', handleOrientation);
+                            }
+                        })
+                        .catch(console.error);
+                });
+            } else {
+                // For other devices
+                window.addEventListener('deviceorientation', handleOrientation);
+            }
+        }
+
+        function handleOrientation(event) {
+            // Use gamma (left-right tilt) and beta (front-back tilt)
+            const gamma = event.gamma; // -90 to 90
+            const beta = event.beta;   // -180 to 180
+            
+            if (gamma !== null && beta !== null) {
+                targetRotationY = (gamma / 90) * 30; // Max 30 degrees
+                targetRotationX = -(beta / 180) * 15; // Max 15 degrees
+            }
+        }
+
+        // Smooth animation loop for 3D rotation
+        function animate() {
+            // Smooth interpolation
+            currentRotationY += (targetRotationY - currentRotationY) * 0.1;
+            currentRotationX += (targetRotationX - currentRotationX) * 0.1;
+            
+            // Apply 3D transformation
+            container.style.transform = `rotateY(${currentRotationY}deg) rotateX(${currentRotationX}deg)`;
+            
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation loop
+        animate();
+
+        // Cursor hide/show
+        document.addEventListener('mouseleave', () => {
+            cursor.style.opacity = '0';
+        });
+
+        document.addEventListener('mouseenter', () => {
+            cursor.style.opacity = '1';
+        });
+
+        // Create continuous rain effect
+        function startRain() {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => createFallingText(), i * 100);
+            }
+            
+            if (Math.random() < 0.3) {
+                createFallingHeart();
+            }
+        }
+
+        // Start the rain effect
+        setInterval(startRain, 200);
+
+        // Create initial burst
+        for (let i = 0; i < 20; i++) {
+            setTimeout(() => {
+                createFallingText();
+                if (Math.random() < 0.4) {
+                    createFallingHeart();
+                }
+            }, i * 50);
+        }
+
+        // Add random chaos bursts
+        setInterval(() => {
+            if (Math.random() < 0.3) {
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => createFallingText(), i * 30);
+                }
+            }
+        }, 1000);
+
+        // Add instruction text for mobile users
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            const instruction = document.createElement('div');
+            instruction.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ff69b4;
+        font-size: 14px;
+        text-align: center;
+        z-index: 1000;
+        opacity: 0.7;
+        text-shadow: 0 0 10px #ff69b4;
+    `;
+            instruction.innerHTML = 'Nghiêng điện thoại hoặc vuốt để xoay không gian 3D<br>Tilt phone or swipe to rotate 3D space';
+            document.body.appendChild(instruction);
+            
+            // Hide instruction after 5 seconds
+            setTimeout(() => {
+                instruction.style.opacity = '0';
+                setTimeout(() => instruction.remove(), 1000);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
